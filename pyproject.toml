@@ -1,0 +1,26 @@
+[project]
+name = "zero-btc-screen"
+version = "0.1.0"
+description = "Bitcoin (or any other currency) stock price display for Raspberry Pi Zero"
+requires-python = ">=3.7"
+dependencies = [
+    "requests",
+    "Pillow",
+]
+
+[project.optional-dependencies]
+inky = [
+    "inky",
+]
+# waveshare displays require installing the driver from a local clone:
+#   pip install ~/e-Paper/RaspberryPi_JetsonNano/python/
+
+[project.scripts]
+zero-btc-screen = "main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["config", "data", "presentation"]
