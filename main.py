@@ -19,7 +19,6 @@ def get_dummy_data():
     return []
 
 
-
 def fetch_prices():
     logger.info('Fetching prices')
     timeslot_end = datetime.now(timezone.utc)
@@ -35,7 +34,7 @@ def fetch_prices():
 
 
 def main():
-    logger.info('Initialize')
+    logger.info("Initialize")
 
     data_sink = Observable()
     builder = Builder(config)
@@ -44,19 +43,17 @@ def main():
     try:
         while True:
             try:
-                prices = [entry[1:] for entry in get_dummy_data()] if config.dummy_data else fetch_prices()
-                data_sink.update_observers(prices)
+                prices = fetch_prices()
+                if prices:
+                    data_sink.update_observers(prices)
                 time.sleep(config.refresh_interval)
-            except (HTTPError, URLError) as e:
-                logger.error(str(e))
+            except Exception as e:
+                logger.error(f"Error during execution: {e}")
                 time.sleep(5)
-    except IOError as e:
-        logger.error(str(e))
     except KeyboardInterrupt:
-        logger.info('Exit')
+        logger.info("Exit")
         data_sink.close()
         exit()
-
 
 if __name__ == "__main__":
     main()

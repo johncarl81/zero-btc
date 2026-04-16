@@ -2,25 +2,33 @@
 name = "zero-btc-screen"
 version = "0.1.0"
 description = "Bitcoin (or any other currency) stock price display for Raspberry Pi Zero"
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 dependencies = [
     "requests",
     "Pillow",
+    "numpy",
 ]
 
 [project.optional-dependencies]
+# inky display support — on Pi Zero 1 install RPi.GPIO and spidev via apt first:
+#   sudo apt install python3-rpi.gpio python3-spidev
 inky = [
-    "inky",
+    "inky[rpi]",
+    "RPi.GPIO",
+    "spidev",
 ]
 # waveshare displays require installing the driver from a local clone:
 #   pip install ~/e-Paper/RaspberryPi_JetsonNano/python/
 
-[project.scripts]
-zero-btc-screen = "main:main"
+# NOTE: [project.scripts] is omitted because main.py lives at the project root
+# and is not inside any package. Run directly with: uv run python main.py
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.uv]
+find-links = ["wheels"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["config", "data", "presentation"]

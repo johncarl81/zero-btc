@@ -1,4 +1,5 @@
 import math
+from math import ceil, floor
 from config.config import config
 
 class Plot:
@@ -24,7 +25,6 @@ class Plot:
                 return position_first[0] + (area_width - text_width) / 2
             else:
                 return position_first[0]
-
         max_price = max(prices)
         min_price = min(prices)
         price_step = (max_price - min_price) / (labels_number - 1)
@@ -43,7 +43,7 @@ class Plot:
         price_text = price_text + "%"
         if percentage > 0:
             price_text = "+" + price_text
-        text_width, _ = draw.textsize(price_text, font)
+        text_width = draw.textlength(price_text, font)
         price_position = ((x_middle - (text_width / 2)), y)
         draw.text(price_position, price_text, font=font, fill=fill)
         return text_width
@@ -111,7 +111,6 @@ class Plot:
                 draw.line([x, open_y, x + candle_width - 1, close_y], fill=fill_pos)
             else:
                 if open < close:
-                    # draw.rectangle([x, open_y, x + candle_width - 1, close_y], fill=fill_pos)
                     draw.rectangle([x, close_y, x + candle_width - 1, open_y], fill=fill_pos)
                 else:
                     draw.rectangle([x, open_y, x + candle_width - 1, close_y], fill=fill_neg)
