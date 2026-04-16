@@ -26,34 +26,73 @@ Bitcoin (or any other currency) stock price for your RPi Zero
 
 ## Installation
 
+### Pi Zero 1 notes
+
+The Pi Zero 1 uses an ARMv6 CPU with only 512 MB RAM. Many Python packages do
+not ship pre-built wheels for ARMv6, so you **must** install the heavy
+dependencies through `apt` before using `uv` or `pip`:
+
+```bash
+sudo apt update
+sudo apt install python3-numpy python3-pil python3-rpi.gpio python3-spidev
+```
+
+Skipping this step means `numpy` and `Pillow` will attempt to compile from
+source, which can take an hour or more and may run out of memory.
+
+---
+
+### Steps
+
 1. Turn on SPI via `sudo raspi-config`
     ```
     Interfacing Options -> SPI
-   ```
-2. Install dependencies
-    ```
-    sudo apt update
-    sudo apt-get install python3-pip python3-numpy git
-    pip3 install RPi.GPIO spidev pillow
     ```
 
-3. Install drivers for your display (you don't need to install both)
-    1. If you have a Waveshare display
+2. Install system-level dependencies (required on Pi Zero 1)
+    ```bash
+    sudo apt update
+    sudo apt install python3-numpy python3-pil python3-rpi.gpio python3-spidev
     ```
-    git clone https://github.com/waveshare/e-Paper.git ~/e-Paper
-    pip3 install ~/e-Paper/RaspberryPi_JetsonNano/python/
+
+3. Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
+    ```bash
+    curl -LsSf https://astral.sh/uv/install.sh | sh
     ```
-    2. If you have an Inky wHAT display
-    ```
-    pip3 install inky[rpi]
-    ```
-4. Download Zero BTC Screen
-    ```
+
+4. Clone the repo
+    ```bash
     git clone https://github.com/dr-mod/zero-btc-screen.git ~/zero-btc-screen
+    cd ~/zero-btc-screen
     ```
-5. Run it
+
+5. Create a virtualenv that can see the system packages (numpy, Pillow, RPi.GPIO)
+    ```bash
+    uv venv --system-site-packages
     ```
-    python3 ~/zero-btc-screen/main.py
+
+6. Install project dependencies
+    - For an **Inky pHAT / Inky wHAT** display:
+      ```bash
+      uv pip install -e ".[inky]"
+      ```
+    - For a **Waveshare** display, install the vendor driver first, then:
+      ```bash
+      git clone https://github.com/waveshare/e-Paper.git ~/e-Paper
+      uv pip install ~/e-Paper/RaspberryPi_JetsonNano/python/
+      uv pip install -e .
+      ```
+      For more information refer to: https://www.waveshare.com/wiki/2.13inch_e-Paper_HAT
+    - For a **virtual / picture** output only:
+      ```bash
+      uv pip install -e .
+      ```
+
+7. Edit `configuration.cfg` to select your screen (see **Screen configuration** below)
+
+8. Run it
+    ```bash
+    uv run python main.py
     ```
 
 
@@ -116,13 +155,9 @@ To make it run on startup you can choose from 2 options:
     1. `sudo nano /etc/rc.local`
     2. Add one the following before `exit 0`
    ```
-   /usr/bin/python3 /home/pi/zero-btc-screen/main.py &
+   su - pi -c "cd /home/pi/zero-btc-screen && /home/pi/.local/bin/uv run python main.py" &
    ```
-   conversely, you can run in `screen` you can install it with `sudo apt-get install screen`
-   ```
-   su - pi -c "/usr/bin/screen -dm sh -c '/usr/bin/python3 /home/pi/zero-btc-screen/main.py'"
-   ```
-2. Using the system's services daemon
+2. Using the system's services daemon (recommended)
     1. Create a new service configuration file
        ```
         sudo nano /etc/systemd/system/btc-screen.service
@@ -135,7 +170,7 @@ To make it run on startup you can choose from 2 options:
         After=network.target
  
         [Service]
-        ExecStart=/usr/bin/python3 -u main.py
+        ExecStart=/home/pi/.local/bin/uv run python main.py
         WorkingDirectory=/home/pi/zero-btc-screen
         StandardOutput=inherit
         StandardError=inherit
