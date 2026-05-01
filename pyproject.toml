@@ -13,7 +13,7 @@ dependencies = [
 # inky display support — on Pi Zero 1 install RPi.GPIO and spidev via apt first:
 #   sudo apt install python3-rpi.gpio python3-spidev
 inky = [
-    "inky[rpi]",
+    "inky==2.3.0",
     "RPi.GPIO",
     "spidev",
 ]
@@ -29,6 +29,7 @@ build-backend = "hatchling.build"
 
 [tool.uv]
 find-links = ["wheels"]
+extra-index-url = ["https://www.piwheels.org/simple"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["config", "data", "presentation"]
