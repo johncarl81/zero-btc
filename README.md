@@ -147,6 +147,37 @@ filename : /home/pi/output.png
 mode : candle
 ```
 
+## Troubleshooting
+
+### `Building numpy==x.x.x` hangs on Pi Zero 1
+
+The Pi Zero 1 (ARMv6) has no pre-built numpy wheel on PyPI, so pip will
+attempt to compile it from source — which takes over an hour and often runs
+out of memory.
+
+Fix: install numpy via apt *before* running `uv pip install`, then create the
+venv with `--system-site-packages` so uv can see it:
+
+```bash
+sudo apt install python3-numpy python3-pil python3-rpi.gpio python3-spidev
+uv venv --system-site-packages
+uv pip install -e ".[inky]"
+```
+
+piwheels (pre-built ARM wheels) is already configured in `pyproject.toml` for
+any packages that do have ARMv6 builds there.
+
+### `"some pins we need are in use!"` on startup
+
+Newer versions of the inky library use `gpiodevice` (libgpiod) to manage GPIO
+pins, which can conflict with the kernel SPI driver. This project pins
+`inky==2.3.0` which avoids this issue. If you see it anyway, add the following
+to `/boot/config.txt` and reboot:
+
+```
+dtoverlay=spi0-0cs
+```
+
 ### Autostart
 
 To make it run on startup you can choose from 2 options:
